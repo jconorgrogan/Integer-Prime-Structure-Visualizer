@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integer Prime Structure Visualizer - Enhanced with Insights</title>
+    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    <style>
+        /* --- Root Variables --- */
+        :root {
+            --primary-color: #4285F4;    /* ISG / Blue */
+            --secondary-color: #34A853;  /* DFG / Green */
+            --tertiary-color: #FBBC05;   /* OmegaOmega / Yellow */
+            --quaternary-color: #EA4335; /* Combined / Red */
+            --lambda-pos-color: #1a73e8;
+            --lambda-neg-color: #d93025;
+            --light-bg: #f8f9fa;
+            --dark-text: #212529;
+            --light-text: #fff;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-radius: 8px;
+        }
+
+        /* --- Basic Reset & Body --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-text);
+            background-color: var(--light-bg);
+            padding: 20px;
+        }
+
+        /* --- Main Container & Header --- */
+        .container { max-width: 1700px; margin: 0 auto; background-color: white; border-radius: var(--border-radius); padding: 30px; box-shadow: var(--shadow); }
+        header { margin-bottom: 30px; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; }
+        h1 { font-size: 2.2rem; margin-bottom: 10px; color: var(--primary-color); font-weight: 600; }
+        .description { font-size: 1.05rem; color: #6c757d; max-width: 950px; margin: 0 auto 20px auto; }
+
+        /* --- Conceptual Framework Section --- */
+        .conceptual-framework {
+            background-color: #eef4ff; /* Light blue background */
+            border: 1px solid #a8c7fa;
+            border-radius: var(--border-radius);
+            padding: 20px 25px;
+            margin-bottom: 30px;
+        }
+        .conceptual-framework h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #cddcff;
+            padding-bottom: 10px;
+        }
+        .conceptual-framework p {
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: #334;
+        }
+        .conceptual-framework strong {
+             font-weight: 600;
+             color: #1a237e; /* Darker blue */
+        }
+
+        /* --- Control Panel --- */
+        .control-panel { background-color: #fdfdfd; border-radius: var(--border-radius); border: 1px solid var(--border-color); padding: 20px; margin-bottom: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; align-items: start; }
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        .control-group label { font-weight: 500; margin-bottom: 3px; color: #495057; font-size: 0.9rem; }
+        .input-group { display: flex; gap: 10px; }
+        input, select, button { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius); font-size: 0.95rem; height: 38px; }
+        input[type="text"], input[type="number"] { flex-grow: 1; }
+        input:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15); }
+        button { background-color: var(--primary-color); color: white; border: none; cursor: pointer; transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; font-weight: 500; min-width: 90px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+        button:hover { background-color: #3367D6; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        button:disabled { background-color: #aaa; cursor: not-allowed; box-shadow: none; }
+        #range-hint { margin-top: 5px; font-size: 0.8rem; color: #6c757d; }
+
+        /* --- Visualization Layout --- */
+        .visualization-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 30px; margin-bottom: 30px; }
+        .view-container { border: 1px solid var(--border-color); border-radius: var(--border-radius); overflow: hidden; background: white; display: flex; flex-direction: column; }
+        .view-header { display: flex; justify-content: space-between; align-items: center; background-color: #f8f9fa; padding: 10px 15px; border-bottom: 1px solid var(--border-color); }
+        .view-info { flex-grow: 1; border-left: 5px solid var(--primary-color); padding-left: 10px; }
+        .view-info h3 { margin-bottom: 5px; font-size: 1.1rem; font-weight: 600; }
+        .view-info p { margin-bottom: 3px; font-size: 0.85rem; color: #495057;}
+        .view-controls { display: flex; gap: 10px; font-size: 0.8rem;}
+        .view-controls label { margin-right: 3px;}
+        .view-controls select { padding: 2px 4px; height: auto; font-size: 0.8rem; }
+        .view-header.isg .view-info { border-left-color: var(--primary-color); }
+        .view-header.dfg .view-info { border-left-color: var(--secondary-color); }
+        .view-header.omegaomega .view-info { border-left-color: var(--tertiary-color); }
+        .view-header.combined .view-info { border-left-color: var(--quaternary-color); }
+        .stats-display { font-size: 0.8rem; padding: 5px 15px; background-color: #e9f2ff; border-bottom: 1px solid var(--border-color);}
+        .stats-display p { margin: 2px 0; }
+        .visualization-container { width: 100%; min-height: 400px; height: 50vh; max-height: 550px; overflow: hidden; position: relative; background-color: white; }
+        .loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.1rem; color: #6c757d; display: none; z-index: 10; }
+
+        /* --- Factor Panel --- */
+        .factor-panel { margin-top: 30px; padding: 25px; background-color: white; border-radius: var(--border-radius); border: 1px solid var(--border-color); }
+        .factor-panel h2 { margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; font-size: 1.5rem; font-weight: 600; }
+        #factor-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+        .factor-group { background-color: #f8f9fa; padding: 15px; border-radius: var(--border-radius); border: 1px solid #eee; }
+        .factor-group h3 { margin-bottom: 10px; font-size: 1.1rem; font-weight: 600; color: var(--primary-color); }
+        .factor-group p { margin-bottom: 8px; font-size: 0.95rem; }
+        .sup { vertical-align: super; font-size: smaller; }
+
+        /* --- Mathematical Insights Section --- */
+        .insights-section {
+            margin-top: 40px;
+            padding: 25px;
+            background-color: #f1f3f5; /* Light gray background */
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+        .insights-section h2 {
+            font-size: 1.6rem;
+            color: var(--dark-text);
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ced4da;
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+        details {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 15px;
+            padding: 15px;
+            transition: box-shadow 0.2s ease;
+        }
+        details[open] {
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+        }
+        summary {
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--primary-color);
+            list-style: none; /* Remove default marker */
+            position: relative;
+            padding-left: 25px;
+        }
+         summary::-webkit-details-marker { display: none; } /* Chrome/Safari */
+         summary::marker { display: none; } /* Firefox */
+
+        summary::before { /* Custom marker */
+            content: '►';
+            position: absolute;
+            left: 0;
+            top: 0px;
+            font-size: 0.9em;
+            color: var(--primary-color);
+            transition: transform 0.2s ease;
+        }
+        details[open] summary::before {
+            transform: rotate(90deg);
+        }
+        .insight-content {
+            margin-top: 15px;
+            padding-left: 25px; /* Indent content */
+            border-left: 2px solid #e0e0e0;
+        }
+        .insight-content h4 {
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-size: 1rem;
+            color: #333;
+            font-weight: 600;
+        }
+        .insight-content p {
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+         .insight-content code {
+            background-color: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 0.9em;
+        }
+        .emphasis {
+            font-style: italic;
+            color: #555;
+        }
+         .view-ref {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #666;
+            display: block;
+            margin-bottom: 10px;
+         }
+
+
+        /* --- Responsive --- */
+        @media (max-width: 1200px) { .visualization-grid { grid-template-columns: 1fr; } .visualization-container { height: 45vh; min-height: 350px; } }
+        @media (max-width: 768px) { h1 { font-size: 1.8rem; } .description { font-size: 1rem; } .control-panel { grid-template-columns: 1fr; } #factor-details { grid-template-columns: 1fr; } .insights-section h2 { font-size: 1.4rem; } summary { font-size: 1rem; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Integer Prime Structure Visualizer</h1>
+            <p class="description">
+                Explore the structure of integers via their prime factorizations. Map integers to coordinates based on exponent patterns (Intensity, Volume, Variety) revealing mathematical relationships, statistical distributions, and connections to number theory concepts like ζ(s) and λ(n). Includes 2D views and a combined 3D perspective.
+            </p>
+        </header>
+
+        <!-- Conceptual Framework -->
+        <section class="conceptual-framework">
+            <h2>Conceptual Framework: Numbers as Relationships</h2>
+            <p>Fundamentally, each positive integer is uniquely defined by its prime factorization (e.g., 12 = 2² × 3¹). We can re-imagine an integer not just as a quantity, but as the embodiment of this unique <strong>"Pattern of Relatedness"</strong> to the fundamental building blocks – the prime numbers.</p>
+            <p>The exponents in the factorization (like the '2' and '1' in 12) quantify the "strength" or "depth" of the relationship between the integer and each specific prime. The set of all these exponents `{v_p(n)}` for all primes `p` *is* the integer's structural identity.</p>
+            <p>This visualizer maps these "Patterns of Relatedness" onto different 2D and 3D grids. The coordinates are derived from summary statistics of each Pattern's internal structure, specifically:</p>
+            <ul>
+                <li><strong>Peak Intensity:</strong> The maximum exponent (`max{eᵢ}`).</li>
+                <li><strong>Total Volume:</strong> The sum of exponents (`Ω(n)`).</li>
+                <li><strong>Variety:</strong> The number of distinct prime factors (`ω(n)`).</li>
+            </ul>
+            <p>By plotting these summaries, the grids create a space where we can visually compare the structural profiles of different integers and observe the underlying mathematical laws governing how these "Patterns of Relatedness" can be structured and how they relate to each other – revealing <strong>"meta-relationships"</strong>.</p>
+        </section>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+             <!-- Controls remain the same -->
+             <div class="control-group"> <label for="integer-input">Integer(s) Range:</label> <div class="input-group"> <input type="text" id="integer-input" placeholder="e.g. 1-100" value="1-100"> <button id="visualize-btn">Visualize</button> </div> <div id="range-hint">Range (e.g., 1-1000). Max: 5000.</div> </div>
+             <div class="control-group"> <label for="highlight-input">Highlight Integer (Click Point or Enter):</label> <input type="number" id="highlight-input" min="1" placeholder="e.g. 12" value="12"> </div>
+             <div class="control-group"> <label for="special-category">Highlight Category:</label> <select id="special-category"> <option value="none">None</option> <option value="primes">Prime Numbers</option> <option value="prime-powers">Prime Powers (p^k, k>=1)</option> <option value="perfect-squares">Perfect Squares</option> <option value="square-free">Square-free Numbers</option> <option value="perfect">Perfect Numbers</option> <option value="abundant">Abundant Numbers</option> <option value="deficient">Deficient Numbers</option> </select> </div>
+             <div class="control-group"> <label for="color-mode">Point Color Mode:</label> <select id="color-mode"> <option value="default">Default by View</option> <option value="lambda">By Liouville Function λ(n)</option> </select> </div>
+        </div>
+
+        <!-- Visualization Grid Layout -->
+        <div class="visualization-grid">
+             <!-- ISG View -->
+             <div class="view-container"> <div class="view-header isg"> <div class="view-info isg"> <h3>ISG (Intensity vs. Volume)</h3> <p><strong>X:</strong> Max Exponent</p> <p><strong>Y:</strong> Total Factors Ω(n)</p> </div> <div class="view-controls"> <label for="isg-x-scale">X:</label><select id="isg-x-scale" class="axis-scale"><option value="linear">Lin</option><option value="log">Log</option></select> <label for="isg-y-scale">Y:</label><select id="isg-y-scale" class="axis-scale"><option value="linear">Lin</option><option value="log">Log</option></select> </div> </div> <div id="isg-stats" class="stats-display">Statistics loading...</div> <div id="isg-visualization" class="visualization-container"> <div class="loader">Initializing...</div> </div> </div>
+             <!-- DFG View -->
+             <div class="view-container"> <div class="view-header dfg"> <div class="view-info dfg"> <h3>DFG (Variety vs. Intensity)</h3> <p><strong>X:</strong> Distinct Factors ω(n)</p> <p><strong>Y:</strong> Max Exponent</p> </div> <div class="view-controls"> <label for="dfg-x-scale">X:</label><select id="dfg-x-scale" class="axis-scale"><option value="linear">Lin</option><option value="log">Log</option></select> <label for="dfg-y-scale">Y:</label><select id="dfg-y-scale" class="axis-scale"><option value="linear">Lin</option><option value="log">Log</option></select> </div> </div> <div id="dfg-stats" class="stats-display">Statistics loading...</div> <div id="dfg-visualization" class="visualization-container"> <div class="loader">Initializing...</div> </div> </div>
+             <!-- OmegaOmega View -->
+             <div class="view-container"> <div class="view-header omegaomega"> <div class="view-info omegaomega"> <h3>OO (Variety vs. Volume)</h3> <p><strong>X:</strong> Distinct Factors ω(n)</p> <p><strong>Y:</strong> Total Factors Ω(n)</p> </div> <div class="view-controls"> <label for="omegaomega-x-scale">X:</label><select id="omegaomega-x-scale" class="axis-scale"><option value="linear">Lin</option><option value="log">Log</option></select> <label for="omegaomega-y-scale">Y:</label><select id="omegaomega-y-scale" class="axis-scale"><option value="linear">Lin</option><option value="log">Log</option></select> </div> </div> <div id="omegaomega-stats" class="stats-display">Statistics loading...</div> <div id="omegaomega-visualization" class="visualization-container"> <div class="loader">Initializing...</div> </div> </div>
+             <!-- Combined 3D View -->
+             <div class="view-container"> <div class="view-header combined"> <div class="view-info combined"> <h3>Combined 3D</h3> <p><strong>X:</strong> Distinct ω(n)</p> <p><strong>Y:</strong> Max Exponent</p> <p><strong>Z:</strong> Total Ω(n)</p> </div> </div> <div id="combined-stats" class="stats-display">(3D View)</div> <div id="combined-visualization" class="visualization-container"> <div class="loader">Initializing...</div> </div> </div>
+        </div>
+
+        <!-- Mathematical Insights Section -->
+        <section class="insights-section">
+            <h2>Mathematical Insights & Interpretations</h2>
+
+            <details>
+                <summary>Exponentiation & Scaling Rays (Transformational)</summary>
+                <div class="insight-content">
+                    <span class="view-ref">Most apparent in: ISG View</span>
+                    <h4>Mathematical Property</h4>
+                    <p>If an integer <code>m</code> has ISG coordinates <code>(x_m, y_m)</code>, then its power <code>n = m^k</code> has coordinates <code>(k * x_m, k * y_m)</code>. This is because each exponent <code>eᵢ</code> in <code>m</code>'s factorization becomes <code>k * eᵢ</code> in <code>n</code>'s factorization. Both the maximum exponent and the sum of exponents scale linearly with <code>k</code>.</p>
+                    <h4>Geometric Result</h4>
+                    <p>All powers of <code>m</code> (i.e., <code>m, m², m³, ...</code>) lie on a straight line (ray) starting from the origin (0,0) and passing through the point <code>(x_m, y_m)</code> on the ISG plot.</p>
+                    <h4>Conceptual Interpretation</h4>
+                    <p class="emphasis">This reveals a <strong>transformational meta-relationship</strong>. The arithmetic act of exponentiation (intensifying a "Pattern of Relatedness") corresponds directly to geometric scaling in the ISG space (intensity vs. volume). The rays are visual fingerprints of this multiplicative transformation.</p>
+                </div>
+            </details>
+
+             <details>
+                <summary>Liouville Function λ(n) & Parity (Affinity)</summary>
+                <div class="insight-content">
+                    <span class="view-ref">Most apparent in: ISG View, OmegaOmega View (Y-axis = Ω(n)), and Lambda Color Mode</span>
+                    <h4>Mathematical Property</h4>
+                    <p>The Liouville function <code>λ(n) = (-1)^Ω(n)</code> depends on the parity of the total number of prime factors (Ω(n)). In the ISG and OmegaOmega views, the Y-coordinate is exactly <code>y = Ω(n)</code>.</p>
+                    <h4>Geometric Result</h4>
+                    <p>All integers <code>n</code> mapping to the same horizontal line <code>y = k</code> in the ISG or OmegaOmega views have the same Liouville value, <code>λ(n) = (-1)^k</code>. Numbers with an even total number of factors (<code>λ(n)=1</code>) lie on even-numbered Y rows, and those with an odd total (<code>λ(n)=-1</code>) lie on odd-numbered Y rows. This becomes visually explicit when using the "Lambda Color Mode".</p>
+                    <h4>Conceptual Interpretation</h4>
+                    <p class="emphasis">This shows an <strong>affinity meta-relationship</strong>. The grid structure inherently groups Patterns based on the parity of their total structural volume (Ω). Using the Lambda color mode makes this fundamental classification immediately visible, linking the grid structure to this core number-theoretic function.</p>
+                </div>
+            </details>
+
+             <details>
+                <summary>Multiplication & Combination Rules (Combinatorial)</summary>
+                <div class="insight-content">
+                    <span class="view-ref">Relevant to all views, effects vary.</span>
+                     <h4>Mathematical Property</h4>
+                     <p>If <code>n = a * b</code>:</p>
+                     <ul>
+                        <li><strong>Total Volume (Ω):</strong> Always additive: <code>Ω(n) = Ω(a) + Ω(b)</code>. This affects the Y-coordinate in ISG and OmegaOmega.</li>
+                        <li><strong>Variety (ω):</strong> Additive only if <code>a</code> and <code>b</code> are coprime (<code>gcd(a,b)=1</code>). Otherwise, <code>ω(n) < ω(a) + ω(b)</code>. This affects the X-coordinate in DFG and OmegaOmega.</li>
+                        <li><strong>Peak Intensity (Max Exp):</strong> The behavior is complex. If <code>a, b</code> are coprime, <code>max_exp(n) = max(max_exp(a), max_exp(b))</code>. If they share prime factors, the maximum exponent might increase if the highest-power primes align: <code>max_exp(n) = max_p{v_p(a) + v_p(b)}</code>. This affects the X-coordinate in ISG and Y-coordinate in DFG.</li>
+                     </ul>
+                     <h4>Conceptual Interpretation</h4>
+                     <p class="emphasis">These rules show the <strong>combinatorial meta-relationships</strong> governing how "Patterns of Relatedness" combine under multiplication. The plots reveal that Total Volume (Ω) combines simply, while Variety (ω) and Peak Intensity (Max Exp) interact in more complex, context-dependent ways, especially when the combining Patterns share common prime relationships.</p>
+                 </div>
+             </details>
+
+             <details>
+                <summary>Structural Spread & Contours (Relational Shape)</summary>
+                <div class="insight-content">
+                     <span class="view-ref">Most apparent in: ISG View, OmegaOmega View</span>
+                     <h4>Mathematical Property</h4>
+                     <p>Consider the differences:</p>
+                     <ul>
+                        <li><strong>ISG:</strong> <code>d₁ = Ω(n) - max{eᵢ}</code> (Total Volume - Peak Intensity). <code>d₁=0</code> only for prime powers <code>p^k</code> (the <code>y=x</code> line). <code>d₁</code> represents the sum of non-maximal exponents.</li>
+                         <li><strong>OmegaOmega:</strong> <code>d₂ = Ω(n) - ω(n)</code> (Total Volume - Variety). <code>d₂=0</code> only for square-free numbers (the <code>y=x</code> line). <code>d₂</code> represents the number of factors resulting from exponents greater than 1 (i.e., repetition).</li>
+                     </ul>
+                     <h4>Geometric Result</h4>
+                     <p>In the respective plots, lines where these differences (<code>d₁</code> or <code>d₂</code>) are constant run parallel to the main diagonal (<code>y=x</code>). These lines group numbers with a similar "structural spread".</p>
+                     <h4>Conceptual Interpretation</h4>
+                     <p class="emphasis">These differences quantify the <strong>relational shape meta-relationship</strong>. They measure the internal balance of the Pattern. A small difference indicates a structure dominated by its peak (ISG) or having little repetition (OmegaOmega). A large difference indicates a more distributed or repetitive structure. The parallel contours group Patterns with similar internal structural shapes.</p>
+                 </div>
+             </details>
+
+             <details>
+                <summary>Density, Distribution & ζ(s) (Statistical)</summary>
+                <div class="insight-content">
+                     <span class="view-ref">Most apparent in: DFG View</span>
+                     <h4>Mathematical Property & Result</h4>
+                     <p>Analytic number theory connects the density of power-free numbers to the Riemann Zeta function ζ(s).</p>
+                     <ul>
+                         <li><strong>Square-Free (k-free, k=2):</strong> Numbers with <code>max{eᵢ} <= 1</code>. These are precisely the numbers on the line <code>Y=1</code> in the DFG view. Their asymptotic density is <code>1/ζ(2) ≈ 60.8%</code>.</li>
+                         <li><strong>Cube-Free (k-free, k=3):</strong> Numbers with <code>max{eᵢ} <= 2</code>. These are precisely the numbers in the region <code>Y<=2</code> in the DFG view. Their asymptotic density is <code>1/ζ(3) ≈ 83.2%</code>.</li>
+                         <li>Generally, <strong>(m+1)-free</strong> numbers (<code>max{eᵢ} <= m</code>) correspond to the region <code>Y<=m</code> in the DFG view, with density <code>1/ζ(m+1)</code>.</li>
+                     </ul>
+                     <p>The "Statistics" section displayed above the DFG plot compares the actual density in the visualized range to these theoretical values.</p>
+                      <h4>Conceptual Interpretation</h4>
+                     <p class="emphasis">This reveals a <strong>statistical meta-relationship</strong>. The geometric layout of the DFG grid, particularly along the Y-axis (Peak Intensity), directly reflects fundamental constants governing the global distribution of integers based on their power-freeness. The grid visually quantifies the prevalence of Patterns lacking high internal intensity peaks.</p>
+                     <p>Additionally, the distribution along the X-axis (ω(n)) in DFG and OmegaOmega relates to the Erdős–Kac theorem, describing the typically logarithmic growth (`log(log(N))`) of the number of distinct prime factors.</p>
+                 </div>
+             </details>
+
+        </section>
+
+        <!-- Factor Panel (remains the same structure) -->
+        <div class="factor-panel">
+            <h2>Integer Analysis</h2>
+            <div id="factor-details" class="factor-details">
+                 <div class="factor-group"><h3>Information Panel</h3><p>Click a point or enter an integer above.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ----- CONSTANTS -----
+        const ZETA_VALUES = { 2: 1.644934, 3: 1.202057, 4: 1.082323, 5: 1.036928 };
+        const MAX_RANGE_LIMIT = 5000;
+
+        // ----- CORE MATH FUNCTIONS -----
+        const factorizationCache = new Map();
+        function getPrimeFactorization(n) { /* ... No changes ... */
+             if (n <= 0 || !Number.isInteger(n)) { throw new Error("Input must be a positive integer"); }
+             if (factorizationCache.has(n)) { return factorizationCache.get(n); }
+             if (n === 1) { factorizationCache.set(1, {}); return {}; }
+             const factors = {}; let num = n;
+             while (num % 2 === 0) { factors[2] = (factors[2] || 0) + 1; num /= 2; }
+             for (let i = 3; i * i <= num; i += 2) { while (num % i === 0) { factors[i] = (factors[i] || 0) + 1; num /= i; } }
+             if (num > 1) { factors[num] = (factors[num] || 0) + 1; }
+             factorizationCache.set(n, factors); return factors;
+        }
+
+        const propertiesCache = new Map();
+        function calculateProperties(n) { /* ... No changes ... */
+            if (propertiesCache.has(n)) { return propertiesCache.get(n); }
+            if (n === 1) { const props = { n: 1, factorization: {}, isg: [0, 0], dfg: [0, 0], omegaomega: [0, 0], omega: 0, Omega: 0, maxExp: 0, lambda: 1, sigma: 1, d: 1, isPrime: false, isPrimePower: false, isSquareFree: true, isPerfectSquare: true, isPerfect: false, isAbundant: false, isDeficient: false }; propertiesCache.set(1, props); return props; }
+            const factorization = getPrimeFactorization(n);
+            const exponents = Object.values(factorization); const primes = Object.keys(factorization).map(Number);
+            const distinctFactors = primes.length; const maxExponent = exponents.length > 0 ? Math.max(...exponents) : 0; const totalFactors = exponents.reduce((s, e) => s + e, 0);
+            let numDivisors = 1; let sumDivisors = 1;
+            for (let i = 0; i < primes.length; i++) { const p = primes[i]; const e = exponents[i]; numDivisors *= (e + 1); sumDivisors *= (Math.pow(p, e + 1) - 1) / (p - 1); }
+            const lambda = (totalFactors % 2 === 0) ? 1 : -1;
+            const isPrime = distinctFactors === 1 && maxExponent === 1; const isPrimePower = distinctFactors === 1 && totalFactors >= 1;
+            const isSquareFree = maxExponent <= 1; const isPerfectSquare = exponents.every(e => e % 2 === 0);
+            const sigma_minus_2n = sumDivisors - 2 * n; const isPerfect = sigma_minus_2n === 0; const isAbundant = sigma_minus_2n > 0; const isDeficient = sigma_minus_2n < 0;
+            const props = { n, factorization, isg: [maxExponent, totalFactors], dfg: [distinctFactors, maxExponent], omegaomega: [distinctFactors, totalFactors], omega: distinctFactors, Omega: totalFactors, maxExp: maxExponent, lambda, sigma: sumDivisors, d: numDivisors, isPrime, isPrimePower, isSquareFree, isPerfectSquare, isPerfect, isAbundant, isDeficient };
+            propertiesCache.set(n, props); return props;
+        }
+
+        function generateIntegerRange(input) { /* ... No changes ... */
+             input = input.trim(); if (!input) throw new Error("Input cannot be empty.");
+             if (input.includes('-')) {
+                 const parts = input.split('-'); if (parts.length !== 2) throw new Error("Invalid range format.");
+                 const start = parseInt(parts[0].trim()); const end = parseInt(parts[1].trim());
+                 if (isNaN(start) || isNaN(end) || start < 1 || end < start) { throw new Error("Invalid range values."); }
+                 if (end - start + 1 > MAX_RANGE_LIMIT) { throw new Error(`Range too large (max ${MAX_RANGE_LIMIT}).`); }
+                 return Array.from({length: end - start + 1}, (_, i) => start + i);
+             } else { const n = parseInt(input); if (isNaN(n) || n < 1) { throw new Error("Invalid integer."); } return [n]; }
+        }
+
+        // ----- UI & INFO PANEL FUNCTIONS -----
+        function formatFactorizationHTML(factorization) { /* ... No changes ... */
+             if (Object.keys(factorization).length === 0) return "1"; return Object.entries(factorization) .sort((a, b) => parseInt(a[0]) - parseInt(b[0])) .map(([p, e]) => e === 1 ? p : `${p}<span class="sup">${e}</span>`).join(" × ");
+        }
+        function updateFactorInfo(n) { /* ... No changes ... */
+            const factorDetails = document.getElementById("factor-details"); try { if (isNaN(n) || n < 1) { factorDetails.innerHTML = `<div class="factor-group"><h3>Info Panel</h3><p>Enter valid integer or click point.</p></div>`; return; } const props = propertiesCache.get(n); if (!props) { factorDetails.innerHTML = `<div class="factor-group"><h3>Integer: ${n}</h3><p>Data not calculated.</p></div>`; return; } let specialPropsText = []; if (props.isPrime) specialPropsText.push("Prime"); else if (props.isPrimePower && n > 1) specialPropsText.push("Prime Power"); if (props.isPerfectSquare && n > 1) specialPropsText.push("Perfect Square"); if (props.isSquareFree && !props.isPrime && n > 1) specialPropsText.push("Square-free Composite"); else if (props.isSquareFree && n === 1) specialPropsText.push("Square-free"); let divisorPropsText = ""; if (props.isPerfect && n > 1) divisorPropsText = "Perfect"; else if (props.isAbundant) divisorPropsText = "Abundant"; else if (props.isDeficient || n === 1) divisorPropsText = "Deficient"; if(divisorPropsText) specialPropsText.push(divisorPropsText + ` (σ(n)=${props.sigma})`); factorDetails.innerHTML = ` <div class="factor-group"> <h3>Integer: ${props.n}</h3> <p><strong>Factorization:</strong> ${formatFactorizationHTML(props.factorization)}</p> <p><strong>Properties:</strong> ${specialPropsText.length ? specialPropsText.join(", ") : (n === 1 ? "Unit" : "Composite")}</p> </div> <div class="factor-group"> <h3>Coordinates</h3> <p><strong>ISG (MaxExp, Ω):</strong> (${props.isg.join(", ")})</p> <p><strong>DFG (ω, MaxExp):</strong> (${props.dfg.join(", ")})</p> <p><strong>OO (ω, Ω):</strong> (${props.omegaomega.join(", ")})</p> </div> <div class="factor-group"> <h3>Metrics</h3> <p><strong>ω(n) (Distinct):</strong> ${props.omega}</p> <p><strong>Ω(n) (Total):</strong> ${props.Omega}</p> <p><strong>Max Exponent:</strong> ${props.maxExp}</p> <p><strong>λ(n) (Liouville):</strong> ${props.lambda}</p> <p><strong>d(n) (Divisors):</strong> ${props.d}</p> <p><strong>σ(n) (Sum Divisors):</strong> ${props.sigma}</p> </div>`; } catch (error) { console.error("Error updating factor info:", error); factorDetails.innerHTML = `<div class="factor-group"><h3>Error</h3><p>Could not display info for ${n}. ${error.message}</p></div>`; }
+        }
+
+        // ----- STATISTICS CALCULATION -----
+        function calculateAndDisplayStats(processedData, N) { /* ... No changes ... */
+             if (!processedData || processedData.length === 0) { document.getElementById('isg-stats').textContent = "No data."; document.getElementById('dfg-stats').textContent = "No data."; document.getElementById('omegaomega-stats').textContent = "No data."; return; } const count = processedData.length; const omegaValues = processedData.map(d => d.omega); const maxExpValues = processedData.map(d => d.maxExp); const actualSqFree = processedData.filter(d => d.isSquareFree).length; const actualCubeFree = processedData.filter(d => d.maxExp <= 2).length; const densitySqFree = (actualSqFree / count * 100).toFixed(1); const densityCubeFree = (actualCubeFree / count * 100).toFixed(1); const theoreticalSqFree = (1 / ZETA_VALUES[2] * 100).toFixed(1); const theoreticalCubeFree = (1 / ZETA_VALUES[3] * 100).toFixed(1); const meanOmega = omegaValues.reduce((s, v) => s + v, 0) / count; const stdDevOmega = Math.sqrt(omegaValues.reduce((s, v) => s + (v - meanOmega)**2, 0) / count); const theoreticalMeanOmega = N > 2 ? Math.log(Math.log(N)) : 0; const dfgStatsHtml = ` <p title="Density of numbers n where max exponent in factorization is <= 1. Theoretical ≈ 1/ζ(2)">Sq-Free (Act: ${densitySqFree}%, Th: ${theoreticalSqFree}%) | <span title="Density where max exponent <= 2. Theoretical ≈ 1/ζ(3)">Cube-Free (Act: ${densityCubeFree}%, Th: ${theoreticalCubeFree}%)</span></p> <p title="Average number of distinct prime factors ω(n). Theoretical ≈ log(log(N)) by Erdős–Kac.">ω(n) Avg (Act: ${meanOmega.toFixed(2)}, Th: ${theoreticalMeanOmega.toFixed(2)}) | StdDev (Act: ${stdDevOmega.toFixed(2)}, Th: ${theoreticalMeanOmega > 0 ? Math.sqrt(theoreticalMeanOmega).toFixed(2) : 'N/A'})</p> `; document.getElementById('dfg-stats').innerHTML = dfgStatsHtml; const isgStatsHtml = ` <p>Total Points: ${count}. Avg Ω(n): ${(processedData.reduce((s, d) => s + d.Omega, 0) / count).toFixed(2)}.</p> `; const ooStatsHtml = ` <p>ω(n) Avg (Act: ${meanOmega.toFixed(2)}, Th: ${theoreticalMeanOmega.toFixed(2)}) | StdDev (Act: ${stdDevOmega.toFixed(2)}, Th: ${theoreticalMeanOmega > 0 ? Math.sqrt(theoreticalMeanOmega).toFixed(2) : 'N/A'})</p> `; document.getElementById('isg-stats').innerHTML = isgStatsHtml; document.getElementById('omegaomega-stats').innerHTML = ooStatsHtml; document.getElementById('combined-stats').innerHTML = `(3D View - ${count} points)`;
+        }
+
+        // ----- PLOTLY VISUALIZATION -----
+        const viewConfigs = { /* ... No changes ... */
+             isg: { type: 'scatter', x: 'isg[0]', y: 'isg[1]', xLabel: 'Max Exp', yLabel: 'Total Ω(n)', color: 'var(--primary-color)', containerId: 'isg-visualization', statsId: 'isg-stats' },
+             dfg: { type: 'scatter', x: 'dfg[0]', y: 'dfg[1]', xLabel: 'Distinct ω(n)', yLabel: 'Max Exp', color: 'var(--secondary-color)', containerId: 'dfg-visualization', statsId: 'dfg-stats' },
+             omegaomega: { type: 'scatter', x: 'omegaomega[0]', y: 'omegaomega[1]', xLabel: 'Distinct ω(n)', yLabel: 'Total Ω(n)', color: 'var(--tertiary-color)', containerId: 'omegaomega-visualization', statsId: 'omegaomega-stats' },
+             combined: { type: 'scatter3d', x: 'omega', y: 'maxExp', z: 'Omega', xLabel: 'Distinct ω(n)', yLabel: 'Max Exp', zLabel: 'Total Ω(n)', color: 'var(--quaternary-color)', containerId: 'combined-visualization', statsId: 'combined-stats' }
+        };
+        function getNestedValue(obj, path) { /* ... No changes ... */ if (!path) return undefined; const keys = path.replace(/\[(\d+)\]/g, '.$1').split('.'); let v = obj; for (const k of keys) { if (v === undefined || v === null) return undefined; v = v[k]; } return v;}
+
+        function getPlotAnnotationsAndShapes(view, processedData) { /* ... No changes ... */
+             const shapes = []; const annotations = []; if (!processedData || processedData.length === 0) return { shapes, annotations }; const xData = processedData.map(d => getNestedValue(d, viewConfigs[view].x)); const yData = processedData.map(d => getNestedValue(d, viewConfigs[view].y)); const maxX = Math.max(...xData, 0); const maxY = Math.max(...yData, 0); const maxDim = Math.max(maxX, maxY, 1); const lineStyle = { type: 'line', line: { color: 'rgba(0,0,0,0.3)', width: 1, dash: 'dot' }, layer: 'below' }; const annoStyle = { showarrow: false, font: { size: 10, color: 'grey'}, bgcolor: 'rgba(255,255,255,0.6)', xanchor: 'left', yanchor: 'bottom' }; switch (view) { case 'isg': shapes.push({ ...lineStyle, x0: 0, y0: 0, x1: maxDim, y1: maxDim }); annotations.push({ ...annoStyle, x: maxDim*0.95, y: maxDim*0.95, text: 'y=x (p^k)'}); if (maxX > 0 && maxY > 0) { annotations.push({ ...annoStyle, x: maxX * 0.8, y: maxY * 0.1, text: 'Void (y<x)'}); } break; case 'dfg': shapes.push({ ...lineStyle, type: 'line', x0: 1, y0: 0, x1: 1, y1: maxY + 0.5 }); annotations.push({ ...annoStyle, x: 1.05, y: maxY * 0.95, text: 'ω=1 (p^k)'}); shapes.push({ type: 'rect', x0: 0.5, y0: -0.5, x1: 1.5, y1: maxY + 0.5, fillcolor: 'rgba(0,100,0,0.03)', layer: 'below', line: {width: 0} }); annotations.push({ ...annoStyle, x: 0.6, y: maxY * 0.1, text: 'Sq-Free (Y=1)'}); break; case 'omegaomega': shapes.push({ ...lineStyle, x0: 1, y0: 1, x1: maxDim, y1: maxDim }); annotations.push({ ...annoStyle, x: maxDim*0.95, y: maxDim*0.95, text: 'y=x (Sq-Free)'}); break; } return { shapes, annotations };
+        }
+
+        function createOrUpdateVisualization(view, processedData) { /* ... (Updated to use getPlotAnnotationsAndShapes) ... */
+            const config = viewConfigs[view]; const plotDiv = document.getElementById(config.containerId); const loader = plotDiv.querySelector('.loader'); loader.style.display = 'block';
+            const xData = processedData.map(d => getNestedValue(d, config.x)); const yData = processedData.map(d => getNestedValue(d, config.y)); const zData = config.z ? processedData.map(d => getNestedValue(d, config.z)) : undefined;
+            const colorMode = document.getElementById('color-mode').value;
+            let baseMarkerColors; if (colorMode === 'lambda') { baseMarkerColors = processedData.map(d => d.lambda === 1 ? 'var(--lambda-pos-color)' : 'var(--lambda-neg-color)'); } else { baseMarkerColors = new Array(processedData.length).fill(config.color); }
+            appData.currentColors[view] = baseMarkerColors; // Store base colors
+
+            const trace = { x: xData, y: yData, mode: 'markers', type: config.type,
+                text: processedData.map(d => { let c = config.z?`${d.omega},${d.maxExp},${d.Omega}`:`${getNestedValue(d, config.x)},${getNestedValue(d, config.y)}`; return `n=${d.n}<br>Coords:(${c})<br>λ(n):${d.lambda}`; }),
+                hoverinfo: 'text', marker: { size: appData.markerSizes[view], color: baseMarkerColors, opacity: appData.markerOpacities[view], line: { color: 'rgba(0,0,0,0.3)', width: 0.5 } },
+                customdata: processedData.map(d => d.n) };
+            if (config.type === 'scatter3d') { trace.z = zData; }
+
+            const xScaleType = document.getElementById(`${view}-x-scale`)?.value || 'linear'; const yScaleType = document.getElementById(`${view}-y-scale`)?.value || 'linear';
+            const layout = { title: `${view.toUpperCase()} View`, hovermode: 'closest', margin: { l: 60, r: 30, b: 60, t: 80 }, autosize: true, paper_bgcolor: 'white', plot_bgcolor: 'white' };
+            if (config.type === 'scatter3d') { layout.scene = { xaxis:{title:config.xLabel, type:'linear', backgroundcolor:"rgba(0,0,0,0)", gridcolor:"#ddd", zerolinecolor:"#ccc", rangemode:'tozero'}, yaxis:{title:config.yLabel, type:'linear', backgroundcolor:"rgba(0,0,0,0)", gridcolor:"#ddd", zerolinecolor:"#ccc", rangemode:'tozero'}, zaxis:{title:config.zLabel, type:'linear', backgroundcolor:"rgba(0,0,0,0)", gridcolor:"#ddd", zerolinecolor:"#ccc", rangemode:'tozero'}, aspectratio:{x:1,y:1,z:0.8} }; layout.margin = {l:10,r:10,b:10,t:50}; }
+            else { layout.xaxis = {title:config.xLabel, type:xScaleType, zeroline:false, gridcolor:'#eee', rangemode:'tozero'}; layout.yaxis = {title:config.yLabel, type:yScaleType, zeroline:false, gridcolor:'#eee', rangemode:'tozero'}; const { shapes, annotations } = getPlotAnnotationsAndShapes(view, processedData); layout.shapes = shapes; layout.annotations = annotations; }
+
+            Plotly.react(plotDiv, [trace], layout, {responsive: true}).then(() => {
+                 loader.style.display = 'none'; const plotElement = document.getElementById(config.containerId);
+                 if (plotElement) { plotElement.removeAllListeners('plotly_click'); plotElement.on('plotly_click', function(data) { if (data.points.length > 0) { const clickedN = data.points[0].customdata; document.getElementById('highlight-input').value = clickedN; updateFactorInfo(clickedN); highlightInteger(clickedN); } }); }
+             }).catch(err => { console.error(`Plotly error for view ${view}:`, err); loader.textContent = 'Error rendering plot.'; });
+        }
+
+        function highlightInteger(n) { /* ... No changes ... */
+             if (isNaN(n) || n < 1) n = -1; const hlMkr = { color: '#FF0000', sizeFactor: 1.5, line: { color: '#000000', width: 2 }, opacity: 1 }; const hlMkr3D = { color: '#FF0000', sizeFactor: 1.5, opacity: 1 };
+             Object.entries(viewConfigs).forEach(([view, config]) => { const plotDiv = document.getElementById(config.containerId); if (plotDiv && plotDiv.data && plotDiv.data.length > 0 && appData.markerSizes[view]) { const traceIndex = 0; const trace = plotDiv.data[traceIndex]; if (!trace || !trace.customdata) return; const baseSizes = appData.markerSizes[view]; const baseOpacities = appData.markerOpacities[view]; const baseColors = appData.currentColors ? [...appData.currentColors[view]] : new Array(trace.customdata.length).fill(config.color); const sizes = [...baseSizes]; const opacities = [...baseOpacities]; const lineColors = new Array(trace.customdata.length).fill('rgba(0,0,0,0.3)'); const lineWidths = new Array(trace.customdata.length).fill(0.5); const markerColors = [...baseColors]; let needsRestyle = false; if (n !== -1) { trace.customdata.forEach((val, index) => { if (val === n) { needsRestyle = true; const hl = config.type === 'scatter3d' ? hlMkr3D : hlMkr; markerColors[index] = hl.color; sizes[index] = baseSizes[index] * hl.sizeFactor; opacities[index] = hl.opacity; if (hl.line) { lineColors[index] = hl.line.color; lineWidths[index] = hl.line.width; } } }); } else { needsRestyle = true; } if (needsRestyle) { Plotly.restyle(plotDiv, { 'marker.color': [markerColors], 'marker.size': [sizes], 'marker.opacity': [opacities], 'marker.line.color': [lineColors], 'marker.line.width': [lineWidths] }, traceIndex); } } });
+        }
+
+        function highlightCategory(category) { /* ... (Updated with new categories) ... */
+            if (!appData.processedData || appData.processedData.length === 0) return; const highlightOpacity = 0.95; const dimOpacity = 0.15; let filterFn; switch(category) { case "primes": filterFn = d => d.isPrime; break; case "prime-powers": filterFn = d => d.isPrimePower; break; case "perfect-squares": filterFn = d => d.isPerfectSquare; break; case "square-free": filterFn = d => d.isSquareFree; break; case "perfect": filterFn = d => d.isPerfect; break; case "abundant": filterFn = d => d.isAbundant; break; case "deficient": filterFn = d => d.isDeficient; break; default: filterFn = d => true; } const highlightIndices = new Set(); appData.processedData.forEach((d, i) => { if (filterFn(d)) { highlightIndices.add(i); } }); Object.entries(viewConfigs).forEach(([view, config]) => { const plotDiv = document.getElementById(config.containerId); if (plotDiv && plotDiv.data && plotDiv.data.length > 0 && appData.markerOpacities[view]) { const traceIndex = 0; const numPoints = plotDiv.data[traceIndex].customdata.length; const baseOpacities = appData.markerOpacities[view]; let opacities = new Array(numPoints); if (category === 'none') { opacities = [...baseOpacities]; highlightInteger(-1); } else { for(let i=0; i < numPoints; i++) { opacities[i] = highlightIndices.has(i) ? highlightOpacity : dimOpacity; } } Plotly.restyle(plotDiv, { 'marker.opacity': [opacities] }, traceIndex); } });
+        }
+
+        // ----- MAIN APPLICATION LOGIC -----
+        let appData = { /* ... No changes ... */ integers: [], processedData: [], coordDensity: {}, markerSizes: {}, markerOpacities: {}, currentColors: {} };
+
+        function processAndVisualize() { /* ... (No major changes, calls stats calc) ... */
+            const visualizeBtn = document.getElementById('visualize-btn'); visualizeBtn.disabled = true; visualizeBtn.textContent = 'Processing...'; factorizationCache.clear(); propertiesCache.clear();
+             Object.values(viewConfigs).forEach(config => { const plotDiv = document.getElementById(config.containerId); plotDiv.querySelector('.loader').style.display = 'block'; Plotly.purge(plotDiv); document.getElementById(config.statsId).innerHTML = "Calculating..."; });
+            setTimeout(() => { try { const input = document.getElementById("integer-input").value; const integers = generateIntegerRange(input); const maxN = integers.length > 0 ? integers[integers.length - 1] : 0; appData.integers = integers; appData.processedData = integers.map(n => calculateProperties(n)); appData.coordDensity = {}; appData.markerSizes = {}; appData.markerOpacities = {}; appData.currentColors = {}; const colorMode = document.getElementById('color-mode').value; Object.keys(viewConfigs).forEach(view => { const config = viewConfigs[view]; appData.coordDensity[view] = {}; appData.processedData.forEach(d => { const ck = config.z ? `${d.omega},${d.maxExp},${d.Omega}` : `${getNestedValue(d, config.x)},${getNestedValue(d, config.y)}`; appData.coordDensity[view][ck] = (appData.coordDensity[view][ck] || 0) + 1; }); appData.markerSizes[view] = appData.processedData.map(d => { const ck = config.z ? `${d.omega},${d.maxExp},${d.Omega}` : `${getNestedValue(d, config.x)},${getNestedValue(d, config.y)}`; const cnt = appData.coordDensity[view][ck] || 1; return Math.min(config.type==='scatter3d'?10:15, config.type==='scatter3d'?3:5 + Math.sqrt(cnt)); }); appData.markerOpacities[view] = new Array(appData.processedData.length).fill(0.7); if (colorMode === 'lambda') { appData.currentColors[view] = appData.processedData.map(d => d.lambda === 1 ? 'var(--lambda-pos-color)' : 'var(--lambda-neg-color)'); } else { appData.currentColors[view] = new Array(appData.processedData.length).fill(config.color); } }); calculateAndDisplayStats(appData.processedData, maxN); Object.keys(viewConfigs).forEach(view => { createOrUpdateVisualization(view, appData.processedData); }); const category = document.getElementById("special-category").value; highlightCategory(category); const highlightN = parseInt(document.getElementById("highlight-input").value); updateFactorInfo(highlightN); highlightInteger(highlightN); } catch (error) { alert("Error: " + error.message); console.error(error); Object.values(viewConfigs).forEach(config => { const plotDiv = document.getElementById(config.containerId); if (plotDiv) plotDiv.querySelector('.loader').style.display = 'none'; }); } finally { visualizeBtn.disabled = false; visualizeBtn.textContent = 'Visualize'; } }, 10);
+        }
+
+        // --- EVENT LISTENERS ---
+        document.getElementById("visualize-btn").addEventListener("click", processAndVisualize);
+        document.getElementById("highlight-input").addEventListener("input", function() { const n = parseInt(this.value); updateFactorInfo(n); if (!isNaN(n) && n >= 1) highlightInteger(n); else highlightInteger(-1); });
+        document.getElementById("special-category").addEventListener("change", function() { highlightCategory(this.value); });
+        document.getElementById("color-mode").addEventListener("change", processAndVisualize); // Re-plot required
+        document.querySelectorAll(".axis-scale").forEach(sel => sel.addEventListener("change", processAndVisualize)); // Re-plot required
+        document.addEventListener("DOMContentLoaded", processAndVisualize);
+
+    </script>
+</body>
+</html>
